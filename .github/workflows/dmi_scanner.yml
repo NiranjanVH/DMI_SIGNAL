@@ -1,0 +1,37 @@
+name: DMI Signals Scanner
+
+on:
+  workflow_dispatch:
+    inputs:
+      extra_adx_strict:
+        description: "Require surging ADX velocity for all signals (true/false)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas requests pytz
+
+      - name: Run EMA3 scanner
+        env:
+          RUN_ONCE: "true"
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          EXTRA_ADX_AS_STRICT_FILTER: ${{ inputs.extra_adx_strict }}
+        run: python EMA3.py --once
